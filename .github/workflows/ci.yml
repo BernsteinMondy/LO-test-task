@@ -1,4 +1,4 @@
-name: CI
+name: CI Pipeline
 
 env:
   GO_VERSION: 1.24.6
@@ -11,32 +11,54 @@ on:
 
 jobs:
   analyze:
-    runs-on: ubuntu-22.04
-    steps:
-      - run: |
-          ./govulncheck.sh
-          ./staticcheck.sh
-  test:
+    name: Code Analysis
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          go-version: $GO_VERSION
-      - run: go test -v ./...
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run govulncheck
+        run: ./govulncheck.sh
+
+      - name: Run staticcheck
+        run: ./staticcheck.sh
+
+  test:
+    name: Run Tests
+    needs: analyze
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run Tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.out
 
   build:
-    needs:
-      - test
+    name: Build and Lint
+    needs: test
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
-        with:
-          go-version: $GO_VERSION
-      - run: go build -v ./...
 
-      - name: Run Linter
-        run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          golangci-lint run --skip-files '.*_test\.go$'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build
+        run: go build -v -o ./bin/app ./...
