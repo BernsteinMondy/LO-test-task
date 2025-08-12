@@ -60,7 +60,7 @@ func (s *Server) Launch(ctx context.Context) (err error) {
 	slog.Info("Starting to listen on specified address", slog.String("address", addr))
 	err = s.server.ListenAndServe()
 	if err != nil {
-		if errors.Is(http.ErrServerClosed, err) {
+		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
 		return fmt.Errorf("listen on %s: %w", addr, err)
