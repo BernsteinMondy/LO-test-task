@@ -55,9 +55,7 @@ func (a *asyncLogger) Stop() {
 }
 
 func (a *asyncLogger) processLogEntry(entry logEntry) {
-	attrs := append([]slog.Attr{
-		slog.String("level", entry.Level.String()),
-	}, entry.Attrs...)
+	attrs := append([]slog.Attr{}, entry.Attrs...)
 
 	if entry.Err != nil {
 		attrs = append(attrs, slog.Any("error", entry.Err))
