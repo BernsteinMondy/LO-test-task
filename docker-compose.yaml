@@ -1,12 +1,6 @@
 services:
   lo-test-task:
     image: lo-test-task
-    env_file: $E
+    env_file: .env
     ports:
-      - "127.0.0.1:3000:3000"
-    networks:
-      - global
-
-networks:
-  global:
-    external: true
+      - "127.0.0.1:3001:3001"

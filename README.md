@@ -22,9 +22,15 @@ Run an app-launch script with:
 
 ### 2. As a container
 
+Create and configure .env file
+
+```bash
+   mv .env.example .env
+ ```
+
 Build Docker image with Dockerfile
 ```bash
-   docker build 
+   docker build -t lo-test-task .
 ```
 
 Run docker-compose file
