@@ -1,28 +1,47 @@
 ## App launch
 
-1. Make app-launch.sh script executable with:
+### 1. Locally
+
+Create and configure .env file
+
+```bash
+   mv .env.example .env
+ ```
+
+Make app-launch.sh script executable with:
+
 ```bash
    chmod +x app-launch.sh
 ```
 
-2. Run an app-launch script with:
+Run an app-launch script with:
+
 ```bash
   ./app-launch.sh
 ```
 
-2. Make app-launch.sh script executable with:
+### 2. As a container
+
+Build Docker image with Dockerfile
 ```bash
-   chmod +x app-launch.sh
+   docker build 
+```
+
+Run docker-compose file
+```bash
+   docker compose up
 ```
 
 ## Launch tests
 
 1. Make launch-tests.sh script executable with:
+
 ```bash
    chmod +x launch-tests.sh
 ```
 
 2. Run an launch-tests script with:
+
 ```bash
    ./launch-tests.sh
 ```
