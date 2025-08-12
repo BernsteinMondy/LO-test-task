@@ -22,10 +22,10 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Run govulncheck
-        run: ./govulncheck.sh
+        run: ./scripts/govulncheck.sh
 
       - name: Run staticcheck
-        run: ./staticcheck.sh
+        run: ./scripts/staticcheck.sh
 
   test:
     name: Run Tests
