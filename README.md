@@ -5,7 +5,7 @@
 Create and configure .env file
 
 ```bash
-   mv .env.example .env
+   cp .env.example .env
  ```
 
 Make app-launch.sh script executable with:
@@ -25,7 +25,7 @@ Run an app-launch script with:
 Create and configure .env file
 
 ```bash
-   mv .env.example .env
+   cp .env.example .env
  ```
 
 Build Docker image with Dockerfile
