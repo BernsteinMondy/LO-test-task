@@ -68,24 +68,23 @@ func (a *asyncLogger) Log(ctx context.Context, level slog.Level, msg string, err
 		)
 		return
 	default:
-	}
+		entry := logEntry{
+			Level:   level,
+			Message: msg,
+			Err:     err,
+			Attrs:   attrs,
+		}
 
-	entry := logEntry{
-		Level:   level,
-		Message: msg,
-		Err:     err,
-		Attrs:   attrs,
-	}
+		select {
+		case a.logCh <- entry:
+			return
 
-	select {
-	case a.logCh <- entry:
-		return
-
-	default:
-		slog.Warn("Logger buffer full, message dropped",
-			slog.String("msg", msg),
-			slog.Any("error", err),
-		)
+		default:
+			slog.Warn("Logger buffer full, message dropped",
+				slog.String("msg", msg),
+				slog.Any("error", err),
+			)
+		}
 	}
 }
 
