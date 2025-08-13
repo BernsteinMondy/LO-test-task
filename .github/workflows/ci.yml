@@ -40,13 +40,8 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Run Tests
-        run: go test -v -race -coverprofile=coverage.out ./...
-
-      - name: Upload Coverage
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage.out
+        run: |
+          ./scripts/launch-tests.sh
 
   build:
     name: Build
@@ -61,4 +56,6 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Build
-        run: go build -v -o ./bin/app ./...
+        run: |
+          cd ./src
+          go build -v -o .././bin/app ./cmd/server
