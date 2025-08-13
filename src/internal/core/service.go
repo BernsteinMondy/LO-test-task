@@ -34,6 +34,7 @@ func (s *Service) GetTaskByID(ctx context.Context, id uuid.UUID) (*entity.Task, 
 	task, err := s.storage.GetTaskByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrRepoNotFound) {
+			s.logger.Error(ctx, "Service: Task not found the given ID", err, slog.String("task.id", id.String()))
 			return nil, ErrNotFound
 		}
 
