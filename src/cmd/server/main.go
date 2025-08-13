@@ -58,12 +58,6 @@ func run() (err error) {
 	store := storage.New(asyncLogger)
 	slog.Info("Storage created")
 
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
 	service := core.NewService(
 		store,
 		asyncLogger,
