@@ -38,16 +38,6 @@ func run() (err error) {
 	default:
 	}
 
-	slog.Info("Creating storage")
-	store := storage.New()
-	slog.Info("Storage created")
-
-	select {
-	case <-ctx.Done():
-		return nil
-	default:
-	}
-
 	asyncLogger := asynclog.NewAsyncLogger(cfg.Logger.BufferSize)
 
 	stopWg := &sync.WaitGroup{}
@@ -63,6 +53,16 @@ func run() (err error) {
 		slog.Info("Starting async logger")
 		asyncLogger.Start(ctx)
 	}(ctx)
+
+	slog.Info("Creating storage")
+	store := storage.New(asyncLogger)
+	slog.Info("Storage created")
+
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+	}
 
 	service := core.NewService(
 		store,

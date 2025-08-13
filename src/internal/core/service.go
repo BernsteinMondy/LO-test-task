@@ -6,22 +6,8 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"lo-test-task/internal/asynclog"
+	"lo-test-task/internal/entity"
 	"log/slog"
-)
-
-type Task struct {
-	ID          uuid.UUID
-	Title       string
-	Description string
-	Status      TaskStatus
-}
-
-type TaskStatus uint8
-
-const (
-	TaskStatusDone TaskStatus = iota
-	TaskStatusInProgress
-	TaskStatusCreated
 )
 
 type Service struct {
@@ -37,15 +23,15 @@ func NewService(storage Storage, logger asynclog.AsyncLogger) *Service {
 }
 
 type Storage interface {
-	SaveTask(task *Task) error
+	SaveTask(ctx context.Context, task *entity.Task) error
 	// GetTaskByID must return ErrRepoNotFound if no Task was found by the given ID.
-	GetTaskByID(id uuid.UUID) (*Task, error)
-	GetTasksByStatus(status TaskStatus) ([]Task, error)
+	GetTaskByID(ctx context.Context, id uuid.UUID) (*entity.Task, error)
+	GetTasksByStatus(ctx context.Context, status entity.TaskStatus) ([]entity.Task, error)
 }
 
-func (s *Service) GetTaskByID(ctx context.Context, id uuid.UUID) (*Task, error) {
+func (s *Service) GetTaskByID(ctx context.Context, id uuid.UUID) (*entity.Task, error) {
 	s.logger.Info(ctx, "Service: Getting task by ID", slog.String("task.id", id.String()))
-	task, err := s.storage.GetTaskByID(id)
+	task, err := s.storage.GetTaskByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrRepoNotFound) {
 			return nil, ErrNotFound
@@ -61,9 +47,9 @@ func (s *Service) GetTaskByID(ctx context.Context, id uuid.UUID) (*Task, error) 
 	return task, nil
 }
 
-func (s *Service) GetTasksByStatus(ctx context.Context, status TaskStatus) ([]Task, error) {
+func (s *Service) GetTasksByStatus(ctx context.Context, status entity.TaskStatus) ([]entity.Task, error) {
 	s.logger.Info(ctx, "Service: Getting tasks by status")
-	tasks, err := s.storage.GetTasksByStatus(status)
+	tasks, err := s.storage.GetTasksByStatus(ctx, status)
 	if err != nil {
 
 		err = fmt.Errorf("storage: get tasks by status: %w", err)
@@ -76,19 +62,19 @@ func (s *Service) GetTasksByStatus(ctx context.Context, status TaskStatus) ([]Ta
 	return tasks, nil
 }
 
-func (s *Service) CreateNewTask(ctx context.Context, title, description string, status TaskStatus) (uuid.UUID, error) {
+func (s *Service) CreateNewTask(ctx context.Context, title, description string, status entity.TaskStatus) (uuid.UUID, error) {
 	s.logger.Info(ctx, "Service: Creating a new task")
 
 	id := uuid.New()
 
-	task := &Task{
+	task := &entity.Task{
 		ID:          id,
 		Title:       title,
 		Description: description,
 		Status:      status,
 	}
 
-	err := s.storage.SaveTask(task)
+	err := s.storage.SaveTask(ctx, task)
 	if err != nil {
 		err = fmt.Errorf("storage: save task: %w", err)
 

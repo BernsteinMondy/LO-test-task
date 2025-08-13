@@ -3,12 +3,10 @@ package asynclog
 import (
 	"context"
 	"log/slog"
-	"sync"
 )
 
 type asyncLogger struct {
 	logCh      chan logEntry
-	stopOnce   sync.Once
 	stopCh     chan struct{}
 	bufferSize int
 }
@@ -45,15 +43,9 @@ func (a *asyncLogger) Start(ctx context.Context) {
 }
 
 // Stop gracefully stops logger.
-// sync.Once actually guarantees, that Stop() method can be called only once, this
-// is a safety measure to prevent user from calling Stop() more, than once.
 func (a *asyncLogger) Stop() {
-	a.stopOnce.Do(func() {
-		<-a.stopCh
-
-		close(a.stopCh)
-		close(a.logCh)
-	})
+	close(a.logCh)
+	close(a.stopCh)
 }
 
 func (a *asyncLogger) processLogEntry(entry logEntry) {

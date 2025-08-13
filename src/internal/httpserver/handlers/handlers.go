@@ -1,20 +1,28 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/google/uuid"
 	"lo-test-task/internal/core"
+	"lo-test-task/internal/entity"
 	"net/http"
 )
 
-func Map(mux *http.ServeMux, service *core.Service) {
+type Service interface {
+	GetTaskByID(context.Context, uuid.UUID) (*entity.Task, error)
+	GetTasksByStatus(ctx context.Context, status entity.TaskStatus) ([]entity.Task, error)
+	CreateNewTask(ctx context.Context, title, description string, status entity.TaskStatus) (uuid.UUID, error)
+}
+
+func Map(mux *http.ServeMux, service Service) {
 	mux.HandleFunc("GET /tasks", getTasksHandler(service))
 	mux.HandleFunc("POST /tasks", postTasksHandler(service))
 	mux.HandleFunc("GET /tasks/{id}", getTaskHandler(service))
 }
 
-func getTasksHandler(service *core.Service) http.HandlerFunc {
+func getTasksHandler(service Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		statusStr := r.URL.Query().Get("status")
 		if statusStr == "" {
@@ -50,7 +58,7 @@ func getTasksHandler(service *core.Service) http.HandlerFunc {
 	}
 }
 
-func getTaskHandler(service *core.Service) http.HandlerFunc {
+func getTaskHandler(service Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("id")
 		if idStr == "" {
@@ -87,7 +95,7 @@ func getTaskHandler(service *core.Service) http.HandlerFunc {
 	}
 }
 
-func postTasksHandler(service *core.Service) http.HandlerFunc {
+func postTasksHandler(service Service) http.HandlerFunc {
 	type request struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`

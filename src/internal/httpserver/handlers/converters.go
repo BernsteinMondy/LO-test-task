@@ -2,29 +2,29 @@ package handlers
 
 import (
 	"fmt"
-	"lo-test-task/internal/core"
+	"lo-test-task/internal/entity"
 )
 
-func tryConvertStringToTaskStatus(str string) (core.TaskStatus, bool) {
+func tryConvertStringToTaskStatus(str string) (entity.TaskStatus, bool) {
 	switch str {
 	case "done":
-		return core.TaskStatusDone, true
+		return entity.TaskStatusDone, true
 	case "created":
-		return core.TaskStatusCreated, true
+		return entity.TaskStatusCreated, true
 	case "in-progress":
-		return core.TaskStatusInProgress, true
+		return entity.TaskStatusInProgress, true
 	default:
 		return 0, false
 	}
 }
 
-func taskStatusToString(taskStatus core.TaskStatus) string {
+func taskStatusToString(taskStatus entity.TaskStatus) string {
 	switch taskStatus {
-	case core.TaskStatusDone:
+	case entity.TaskStatusDone:
 		return "done"
-	case core.TaskStatusCreated:
+	case entity.TaskStatusCreated:
 		return "created"
-	case core.TaskStatusInProgress:
+	case entity.TaskStatusInProgress:
 		return "in-progress"
 	default:
 		panic(fmt.Sprintf("unknown core.TaskStatus (%v)", taskStatus))
