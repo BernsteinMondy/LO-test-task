@@ -45,8 +45,8 @@ func (a *asyncLogger) Start(ctx context.Context) {
 
 // Stop gracefully stops logger.
 func (a *asyncLogger) Stop() {
-	close(a.logCh)
 	close(a.stopCh)
+	close(a.logCh)
 }
 
 func (a *asyncLogger) processLogEntry(entry logEntry) {
@@ -62,11 +62,30 @@ func (a *asyncLogger) processLogEntry(entry logEntry) {
 func (a *asyncLogger) Log(ctx context.Context, level slog.Level, msg string, err error, attrs ...slog.Attr) {
 	select {
 	case <-a.stopCh:
-		slog.Warn("Attempting to log, but logger is stopped already")
+		slog.Warn("Logger stopped, message dropped",
+			slog.String("msg", msg),
+			slog.Any("error", err),
+		)
 		return
-	case a.logCh <- logEntry{Level: level, Message: msg, Err: err, Attrs: attrs}:
 	default:
-		slog.Warn("async logger buffer full, message dropped", "msg", msg)
+	}
+
+	entry := logEntry{
+		Level:   level,
+		Message: msg,
+		Err:     err,
+		Attrs:   attrs,
+	}
+
+	select {
+	case a.logCh <- entry:
+		return
+
+	default:
+		slog.Warn("Logger buffer full, message dropped",
+			slog.String("msg", msg),
+			slog.Any("error", err),
+		)
 	}
 }
 
