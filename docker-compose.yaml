@@ -3,4 +3,4 @@ services:
     image: lo-test-task
     env_file: .env
     ports:
-      - "0.0.0.0:3001:3000"
+      - "0.0.0.0:3000:3000"
