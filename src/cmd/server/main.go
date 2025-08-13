@@ -48,7 +48,6 @@ func run() (err error) {
 			asyncLogger.Stop()
 			slog.Info("Async logger stopped")
 			stopWg.Done()
-			asyncLogger.Info(ctx, "123")
 		}()
 
 		slog.Info("Starting async logger")
