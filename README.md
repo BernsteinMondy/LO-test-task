@@ -11,13 +11,13 @@ Create and configure .env file
 Make app-launch.sh script executable with:
 
 ```bash
-   chmod +x app-launch.sh
+   chmod +x ./scripts/app-launch.sh
 ```
 
 Run an app-launch script with:
 
 ```bash
-  ./app-launch.sh
+  ./scripts/app-launch.sh
 ```
 
 ### 2. As a container
