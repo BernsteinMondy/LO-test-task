@@ -34,9 +34,10 @@ func (a *asyncLogger) Start(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-a.stopCh:
-			return
-		case entry := <-a.logCh:
+		case entry, ok := <-a.logCh:
+			if !ok {
+				return
+			}
 			a.processLogEntry(entry)
 		}
 	}
@@ -61,6 +62,7 @@ func (a *asyncLogger) processLogEntry(entry logEntry) {
 func (a *asyncLogger) Log(ctx context.Context, level slog.Level, msg string, err error, attrs ...slog.Attr) {
 	select {
 	case <-a.stopCh:
+		slog.Warn("Attempting to log, but logger is stopped already")
 		return
 	case a.logCh <- logEntry{Level: level, Message: msg, Err: err, Attrs: attrs}:
 	default:

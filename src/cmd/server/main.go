@@ -69,7 +69,7 @@ func run() (err error) {
 		asyncLogger,
 	)
 
-	srv := httpserver.New(service, cfg.HTTPServer.ListenAddr)
+	srv := httpserver.New(service, asyncLogger, cfg.HTTPServer.ListenAddr)
 
 	stopWg.Add(1)
 	go func(ctx context.Context) {

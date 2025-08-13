@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"lo-test-task/internal/asynclog"
 	"lo-test-task/internal/core"
 	"lo-test-task/internal/httpserver/handlers"
 	"log/slog"
@@ -14,9 +15,9 @@ type Server struct {
 	server *http.Server
 }
 
-func New(service *core.Service, listenAddr string) *Server {
+func New(service *core.Service, logger asynclog.AsyncLogger, listenAddr string) *Server {
 	mux := http.NewServeMux()
-	handlers.Map(mux, service)
+	handlers.Map(mux, service, logger)
 
 	server := &http.Server{
 		Addr:    listenAddr,

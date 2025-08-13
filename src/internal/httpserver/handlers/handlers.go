@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/google/uuid"
+	"lo-test-task/internal/asynclog"
 	"lo-test-task/internal/core"
 	"lo-test-task/internal/entity"
 	"net/http"
@@ -16,14 +17,16 @@ type Service interface {
 	CreateNewTask(ctx context.Context, title, description string, status entity.TaskStatus) (uuid.UUID, error)
 }
 
-func Map(mux *http.ServeMux, service Service) {
-	mux.HandleFunc("GET /tasks", getTasksHandler(service))
-	mux.HandleFunc("POST /tasks", postTasksHandler(service))
-	mux.HandleFunc("GET /tasks/{id}", getTaskHandler(service))
+func Map(mux *http.ServeMux, service Service, logger asynclog.AsyncLogger) {
+	mux.HandleFunc("GET /tasks", getTasksHandler(service, logger))
+	mux.HandleFunc("POST /tasks", postTasksHandler(service, logger))
+	mux.HandleFunc("GET /tasks/{id}", getTaskHandler(service, logger))
 }
 
-func getTasksHandler(service Service) http.HandlerFunc {
+func getTasksHandler(service Service, logger asynclog.AsyncLogger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger.Info(r.Context(), "Received request for GET /tasks")
+
 		statusStr := r.URL.Query().Get("status")
 		if statusStr == "" {
 			w.WriteHeader(http.StatusBadRequest)
@@ -40,6 +43,7 @@ func getTasksHandler(service Service) http.HandlerFunc {
 
 		tasks, err := service.GetTasksByStatus(ctx, status)
 		if err != nil {
+			logger.Error(r.Context(), "Service: Failed to get tasks by status", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -55,11 +59,15 @@ func getTasksHandler(service Service) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		logger.Info(r.Context(), "Successfully GET /tasks")
 	}
 }
 
-func getTaskHandler(service Service) http.HandlerFunc {
+func getTaskHandler(service Service, logger asynclog.AsyncLogger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger.Info(r.Context(), "Received request for GET /tasks/{id}")
+
 		idStr := r.PathValue("id")
 		if idStr == "" {
 			w.WriteHeader(http.StatusBadRequest)
@@ -80,6 +88,7 @@ func getTaskHandler(service Service) http.HandlerFunc {
 				return
 			}
 
+			logger.Error(r.Context(), "Service: Failed to get task by ID", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -92,10 +101,12 @@ func getTaskHandler(service Service) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		logger.Info(r.Context(), "Successfully GET /tasks/{id}")
 	}
 }
 
-func postTasksHandler(service Service) http.HandlerFunc {
+func postTasksHandler(service Service, logger asynclog.AsyncLogger) http.HandlerFunc {
 	type request struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -106,6 +117,8 @@ func postTasksHandler(service Service) http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger.Info(r.Context(), "Received request for POST /tasks")
+
 		var req request
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
@@ -127,6 +140,7 @@ func postTasksHandler(service Service) http.HandlerFunc {
 		ctx := r.Context()
 		id, err := service.CreateNewTask(ctx, req.Title, req.Description, status)
 		if err != nil {
+			logger.Error(r.Context(), "Service: Failed to create new task", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -141,5 +155,7 @@ func postTasksHandler(service Service) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		logger.Info(r.Context(), "Successfully POST /tasks")
 	}
 }
