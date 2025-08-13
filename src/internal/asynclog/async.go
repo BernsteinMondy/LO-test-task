@@ -49,6 +49,8 @@ func (a *asyncLogger) Start(ctx context.Context) {
 // is a safety measure to prevent user from calling Stop() more, than once.
 func (a *asyncLogger) Stop() {
 	a.stopOnce.Do(func() {
+		<-a.stopCh
+
 		close(a.stopCh)
 		close(a.logCh)
 	})
@@ -66,9 +68,9 @@ func (a *asyncLogger) processLogEntry(entry logEntry) {
 
 func (a *asyncLogger) Log(ctx context.Context, level slog.Level, msg string, err error, attrs ...slog.Attr) {
 	select {
-	case a.logCh <- logEntry{Level: level, Message: msg, Err: err, Attrs: attrs}:
 	case <-a.stopCh:
-		slog.Warn("async logger stopped, message dropped", "msg", msg)
+		return
+	case a.logCh <- logEntry{Level: level, Message: msg, Err: err, Attrs: attrs}:
 	default:
 		slog.Warn("async logger buffer full, message dropped", "msg", msg)
 	}
